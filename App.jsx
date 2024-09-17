@@ -1,16 +1,17 @@
 import { StatusBar } from 'expo-status-bar';
 import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as SQLite from 'expo-sqlite/legacy'
-import { useEffect, useState, callback } from 'react';
+import { useEffect, useState, callback, useCallback } from 'react';
 
 
 export default function App() {
   const [data, setData] = useState('Empty')
   const [printData, setPrintData] = useState('')
   const db = SQLite.openDatabase('thanhNgan.db');
+  const callback = useCallback();
   useEffect(()=>{
     db.transaction((tx)=> {
-      tx.executeSql('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255) NOT NULL);');
+      tx.executeSql('CREATE TABLE IF NOT EXISTS users3 (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255) NOT NULL);');
     })
 
     // db.transaction((tx) => {
@@ -26,35 +27,29 @@ export default function App() {
     //     }
     //   )
     // })
-
-    getData()
     
   }, [])
 
-  const addData = () => {
-    console.log(data)
+  const addData = (callback) => {
     db.transaction((tx) => {
-      tx.executeSql('INSERT INTO users (name) VALUES (?)',
+      tx.executeSql('INSERT INTO users3 (name) VALUES (?)',
         [data],
         (props, resultSet) => {
           console.log('Inserted ID: ', resultSet.insertId);
-          
+          if (callback) callback();
         },
-        (unprops, error) => console.log(unprops.message)
+        (unprops, error) => console.log(error.message)
       );
-    })
-  }
+    });
+  };
 
   const getData = () => {
     db.transaction((tx) => {
       tx.executeSql(
-        "SELECT * FROM users",
+        "SELECT * FROM users3",
         null,
         (txtObj, result)=> {
-            setPrintData(result.rows._array);
-            console.log("FROM GETDATA \n");
-            console.log(printData)
-            
+            setPrintData(result.rows._array);            
         },
         (txtObj, error)=> {
           console.log(error);
@@ -65,9 +60,18 @@ export default function App() {
 
 
 
-  const combinedFuction = () => {
-    addData();
-  }
+  const combinedFunction = () => {
+    // First add the data, then call getData as a callback
+    addData(() => {
+      getData(); // This ensures getData is called only after addData is completed
+    });
+  };
+
+  useEffect(() => {
+    if (printData.length > 0) {
+      console.log('FROM GETDATA\n', printData);
+    }
+  }, [printData]);
 
   return (
     <View style={styles.container}>
@@ -78,7 +82,7 @@ export default function App() {
       
       <Button
         title = "Get Data"
-        onPress={combinedFuction}
+        onPress={combinedFunction}
       ></Button>
 
       <StatusBar style="auto" />  
