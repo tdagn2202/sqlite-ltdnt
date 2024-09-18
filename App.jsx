@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Button, StyleSheet, Text, TextInput, View, Alert } from 'react-native';
 import * as SQLite from 'expo-sqlite/legacy'
 import { useEffect, useState, callback, useCallback } from 'react';
 
@@ -43,6 +43,45 @@ export default function App() {
     });
   };
 
+  const removeDataPrompt = () => {
+    Alert.prompt(
+      "Enter ID to remove:",
+      "Input the ID of the user to delete", 
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        {
+          text: "OK",
+          onPress: id => {
+            if (id) {
+              removeData(id); // Pass the ID to removeData
+            }
+          }
+        }
+      ],
+      "plain-text" // This will make the input a plain text input
+    );
+  }
+  
+
+  const removeData = (id) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        'DELETE FROM users3 WHERE id = ?',
+        [3],
+        (txObj, resultSet) => {
+          console.log(`Deleted rows: ${resultSet.rowsAffected}`);
+          getData(); // Refresh the data after deletion
+        },
+        (txObj, error) => console.log(error)
+      );
+    });
+  };
+  
+
   const getData = () => {
     db.transaction((tx) => {
       tx.executeSql(
@@ -83,6 +122,11 @@ export default function App() {
       <Button
         title = "Get Data"
         onPress={combinedFunction}
+      ></Button>
+
+      <Button
+        title = "Remove data"
+        onPress = {removeDataPrompt}
       ></Button>
 
       <StatusBar style="auto" />  
