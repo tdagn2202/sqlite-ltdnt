@@ -9,6 +9,9 @@ export default function App() {
   const [printData, setPrintData] = useState('')
   const db = SQLite.openDatabase('thanhNgan.db');
   const callback = useCallback();
+
+  const [id, setId] = useState(0)
+  const [name, setName] = useState('')
   useEffect(()=>{
     db.transaction((tx)=> {
       tx.executeSql('CREATE TABLE IF NOT EXISTS users3 (id INTEGER PRIMARY KEY AUTOINCREMENT, name VARCHAR(255) NOT NULL);');
@@ -96,7 +99,6 @@ export default function App() {
     });
   };
   
-  
 
   const getData = () => {
     db.transaction((tx) => {
@@ -113,6 +115,67 @@ export default function App() {
     })
   }
 
+  const updateData = (id, name) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        'UPDATE users3 SET name =? WHERE id =?',
+        [name, id],
+        (txObj, resultSet) => {
+          console.log(`Updated rows: ${resultSet.rowsAffected}`);
+          getData(); // Refresh the data after update
+        },
+        (txObj, error) => console.log(error)
+      );
+    });
+  }
+
+  const combinedFunction2 =(name) => {
+    setName(name);
+    updateData(id, name); // Pass the ID and name to updateData
+  }
+
+  const updateDataPrompt2 = (id) => {
+    Alert.prompt(
+      "Update Data",
+      "Nhập id và tên mới của dòng dữ liệu",
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        {
+          text: "OK",
+          onPress :(name) => combinedFunction2(name)
+        },
+      
+      ],
+      "plain-text" // This will make the input a plain text input
+    );
+  }
+
+  const updateDataPrompt = () => {
+    Alert.prompt(
+      "Update Data",
+      "Nhập id và tên mới của dòng dữ liệu",
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        {
+          text: "OK",
+          onPress: (id) => {
+            setId(id);
+            updateDataPrompt2(); // Call the second prompt after getting the id
+          }
+        },
+      
+      ],
+      "plain-text" // This will make the input a plain text input
+    );
+  }
 
 
   const combinedFunction = () => {
@@ -145,6 +208,12 @@ export default function App() {
         onPress = {removeDataPrompt}
       ></Button>
 
+      <Button
+        title = "Update data"
+        onPress={updateDataPrompt}
+      >
+        
+      </Button>
 
       <TouchableOpacity
         onPress = {dropTable}
@@ -178,4 +247,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  
 });
