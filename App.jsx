@@ -134,30 +134,10 @@ export default function App() {
     updateData(id, name); // Pass the ID and name to updateData
   }
 
-  const updateDataPrompt2 = (id) => {
-    Alert.prompt(
-      "Update Data",
-      "Nhập id và tên mới của dòng dữ liệu",
-      [
-        {
-          text: "Cancel",
-          onPress: () => console.log("Cancel Pressed"),
-          style: "cancel"
-        },
-        {
-          text: "OK",
-          onPress :(name) => combinedFunction2(name)
-        },
-      
-      ],
-      "plain-text" // This will make the input a plain text input
-    );
-  }
-
   const updateDataPrompt = () => {
     Alert.prompt(
       "Update Data",
-      "Nhập id và tên mới của dòng dữ liệu",
+      "Nhập id của dòng dữ liệu cần cập nhật",
       [
         {
           text: "Cancel",
@@ -167,16 +147,31 @@ export default function App() {
         {
           text: "OK",
           onPress: (id) => {
-            setId(id);
-            updateDataPrompt2(); // Call the second prompt after getting the id
+            Alert.prompt(
+              "Update Data",
+              "Nhập tên mới của dòng dữ liệu",
+              [
+                {
+                  text: "Cancel",
+                  onPress: () => console.log("Cancel Pressed"),
+                  style: "cancel"
+                },
+                {
+                  text: "OK",
+                  onPress: (name) => {
+                    updateData(id, name);  // Now update with both the id and the name
+                  }
+                }
+              ],
+              "plain-text"
+            );
           }
-        },
-      
+        }
       ],
-      "plain-text" // This will make the input a plain text input
+      "plain-text"
     );
-  }
-
+  };
+  
 
   const combinedFunction = () => {
     // First add the data, then call getData as a callback
