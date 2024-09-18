@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
-import { Button, StyleSheet, Text, TextInput, View, Alert } from 'react-native';
+import { Button, StyleSheet, Text, TextInput, View, Alert, TouchableOpacity } from 'react-native';
 import * as SQLite from 'expo-sqlite/legacy'
-import { useEffect, useState, callback, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 
 export default function App() {
@@ -38,15 +38,15 @@ export default function App() {
           console.log('Inserted ID: ', resultSet.insertId);
           if (callback) callback();
         },
-        (unprops, error) => console.log(error.message)
+        (unprops, error) => console.log("Table này không tồn tại hoặc đã bị xóa")
       );
     });
   };
 
   const removeDataPrompt = () => {
     Alert.prompt(
-      "Enter ID to remove:",
-      "Input the ID of the user to delete", 
+      "Remove Data By ID",
+      "Nhập id của dòng dữ liệu cần xóa", 
       [
         {
           text: "Cancel",
@@ -71,7 +71,7 @@ export default function App() {
     db.transaction((tx) => {
       tx.executeSql(
         'DELETE FROM users3 WHERE id = ?',
-        [3],
+        [id],
         (txObj, resultSet) => {
           console.log(`Deleted rows: ${resultSet.rowsAffected}`);
           getData(); // Refresh the data after deletion
@@ -80,6 +80,22 @@ export default function App() {
       );
     });
   };
+
+  const dropTable = () => {
+    console.log("Remove button hit");
+    db.transaction((tx) => {
+      tx.executeSql(
+        'DROP TABLE IF EXISTS users3',
+        [],
+        (txObj, resultSet) => {
+          console.log(`Table dropped`);
+          getData();
+        },
+        (txObj, error) => console.log('Error dropping table:', error.message)
+      );
+    });
+  };
+  
   
 
   const getData = () => {
@@ -125,9 +141,30 @@ export default function App() {
       ></Button>
 
       <Button
-        title = "Remove data"
+        title = "Remove Data"
         onPress = {removeDataPrompt}
       ></Button>
+
+
+      <TouchableOpacity
+        onPress = {dropTable}
+        // onPress={() => Alert.alert("Hit")}
+      >
+        <View style = {{height:50, width: 150, backgroundColor: 'red', justifyContent: 'center', alignItems:'center',
+          borderRadius: 100, top:100}}>
+
+          <Text style ={{color: 'white', fontSize:17, fontWeight:'bold'}}>
+            Remove table
+          </Text>
+        </View>
+      </TouchableOpacity>
+
+      {/* <Button
+        title='Reload Data'
+        onPress={getData}
+      > */}
+        
+      {/* </Button> */}
 
       <StatusBar style="auto" />  
     </View>
